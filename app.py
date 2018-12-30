@@ -38,6 +38,20 @@ def after_request(response):
     return response
 
 
+@app.route('/register', methods=('GET', 'POST'))
+def register():
+    form = forms.RegisterForm()
+    if form.validate_on_submit():
+        flash("You registered.", "success")
+        models.User.create_user(
+            username=form.username.data,
+            email=form.email.data,
+            password=form.password.data
+        )
+        return redirect(url_for('index'))
+    return render_template('register.html', form=form)
+
+
 @app.route('/login', methods=('GET', 'POST'))
 def login():
     form = forms.LoginForm()
