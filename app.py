@@ -92,10 +92,17 @@ def enter_log():
     return render_template('entry.html', form=form)
 
 
-@app.route('/entries', methods=['GET', 'POST'])
+@app.route('/entries', methods=('GET', 'POST'))
 def entries():
     entries = current_user.get_entries()
     return render_template('entries.html', entries=entries)
+
+
+@app.route('/details/<int:entry_id>')
+@login_required
+def details(entry_id):
+    entry = models.Entry.get(models.Entry.id == entry_id)
+    return render_template('detail.html', entry=entry)
 
 
 @app.route('/logout')

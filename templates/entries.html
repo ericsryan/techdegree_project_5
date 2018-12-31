@@ -1,17 +1,16 @@
 {% extends 'layout.html' %}
 
 {% block content %}
+<div class="container">
+    <div class="entry-list">
+        <article>
 {% for entry in entries %}
-    <article>
-        <h2>
-            {{ entry.title }}
-        </h2>
-
-        <div class="">
-            <p>{{ entry.timestamp.strftime('%m/%d/%Y') }}</p>
-            <h3>What I learned:</h3>
-            <p>{{ entry.learned }}</p>
-        </div>
-    </article>
+            <h2>
+                <a href="{{ url_for('details', entry_id=entry.id) }}">{{ entry.title }}</a>
+            </h2>
+                <p>{{ entry.timestamp.strftime('%m/%d/%Y') }}</p>
 {% endfor %}
 {% endblock %}
+        </article>
+    </div>
+</div>

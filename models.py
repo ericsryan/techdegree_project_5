@@ -22,6 +22,10 @@ class User(UserMixin, Model):
     def get_entries(self):
         return Entry.select().where(Entry.user == self)
 
+    def get_entry(self):
+        pass
+        return Entry.select().where(Entry.id == self)
+
 
     @classmethod
     def create_user(cls, username, email, password, admin=False):
