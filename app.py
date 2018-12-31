@@ -27,6 +27,7 @@ def load_user(userid):
 @app.before_request
 def before_request():
     """Connect to the database before each request."""
+    g.user = current_user
     g.db = models.DATABASE
     g.db.connect()
 
@@ -70,8 +71,31 @@ def login():
     return render_template('login.html', form=form)
 
 
-@app.route('/')
+@app.route('/entry', methods=('GET', 'POST'))
 @login_required
+def enter_log():
+    form = forms.Entry()
+    if form.validate_on_submit():
+        flash("Your entry has been saved.", "success")
+        models.Entry.create(
+            user=g.user.username,
+            timestamp=form.timestamp.data,
+            time_spent=form.time_spent.data,
+            learned=form.learned.data,
+            resources=form.resources.data
+        )
+        return redirect(url_for('index'))
+    return render_template('entry.html', form=form)
+
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    flash("You have been logged out.", "success")
+    return redirect(url_for('index'))
+
+
+@app.route('/')
 def index():
     return render_template('index.html')
 
