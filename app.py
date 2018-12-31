@@ -116,7 +116,8 @@ def logout():
 @app.route('/')
 def index():
     """Display the main page."""
-    return render_template('index.html')
+    entries = current_user.get_entries()
+    return render_template('index.html', entries=entries)
 
 
 if __name__ == '__main__':
