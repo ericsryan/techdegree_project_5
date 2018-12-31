@@ -41,6 +41,7 @@ def after_request(response):
 
 @app.route('/register', methods=('GET', 'POST'))
 def register():
+    """Register a new user."""
     form = forms.RegisterForm()
     if form.validate_on_submit():
         flash("You registered.", "success")
@@ -55,6 +56,7 @@ def register():
 
 @app.route('/login', methods=('GET', 'POST'))
 def login():
+    """Login existing user."""
     form = forms.LoginForm()
     if form.validate_on_submit():
         try:
@@ -74,11 +76,13 @@ def login():
 @app.route('/entry', methods=('GET', 'POST'))
 @login_required
 def enter_log():
+    """Create a new journal entry."""
     form = forms.Entry()
     if form.validate_on_submit():
         flash("Your entry has been saved.", "success")
         models.Entry.create(
-            user=g.user.username,
+            user=g.user._get_current_object(),
+            title=form.title.data,
             timestamp=form.timestamp.data,
             time_spent=form.time_spent.data,
             learned=form.learned.data,
@@ -88,8 +92,15 @@ def enter_log():
     return render_template('entry.html', form=form)
 
 
+@app.route('/entries', methods=['GET', 'POST'])
+def entries():
+    entries = current_user.get_entries()
+    return render_template('entries.html', entries=entries)
+
+
 @app.route('/logout')
 def logout():
+    """Log out the current user."""
     logout_user()
     flash("You have been logged out.", "success")
     return redirect(url_for('index'))
@@ -97,6 +108,7 @@ def logout():
 
 @app.route('/')
 def index():
+    """Display the main page."""
     return render_template('index.html')
 
 

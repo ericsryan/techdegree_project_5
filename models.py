@@ -20,7 +20,7 @@ class User(UserMixin, Model):
 
 
     def get_entries(self):
-        return Entry.select().where(Post.user == self)
+        return Entry.select().where(Entry.user == self)
 
 
     @classmethod
@@ -39,7 +39,8 @@ class User(UserMixin, Model):
 
 
 class Entry(Model):
-    user = CharField()
+    user = ForeignKeyField(User, backref='entries')
+    title = TextField()
     timestamp = DateTimeField(default=datetime.datetime.now)
     time_spent = CharField()
     learned = TextField()

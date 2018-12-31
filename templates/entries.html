@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+{% for entry in entries %}
+    <article>
+        <h2>
+            {{ entry.title }}
+        </h2>
+
+        <div class="">
+            <p>{{ entry.timestamp.strftime('%m/%d/%Y') }}</p>
+            <h3>What I learned:</h3>
+            <p>{{ entry.learned }}</p>
+        </div>
+    </article>
+{% endfor %}
+{% endblock %}
