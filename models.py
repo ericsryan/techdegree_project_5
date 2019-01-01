@@ -20,7 +20,15 @@ class User(UserMixin, Model):
 
 
     def get_entries(self):
-        return Entry.select().where(Entry.user == self)
+        return (Entry.select().where(Entry.user == self).
+                order_by(Entry.timestamp.desc()))
+
+    def get_index_entries(self):
+        return (Entry.select().where(Entry.user == self).
+                limit(4).order_by(Entry.timestamp.desc()))
+
+    def get_entry_count(self):
+        return Entry.select().where(Entry.user == self).count()
 
 
     @classmethod

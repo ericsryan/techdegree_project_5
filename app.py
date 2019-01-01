@@ -105,6 +105,15 @@ def details(entry_id):
     return render_template('detail.html', entry=entry)
 
 
+@app.route('/delete/<int:entry_id>')
+@login_required
+def delete(entry_id):
+    entry = models.Entry.get(models.Entry.id == entry_id)
+    entry.delete_instance()
+    flash("The entry has been deleted")
+    return redirect(url_for('index'))
+
+
 @app.route('/logout')
 def logout():
     """Log out the current user."""
@@ -116,16 +125,22 @@ def logout():
 @app.route('/')
 def index():
     """Display the main page."""
-    entries = current_user.get_entries()
-    return render_template('index.html', entries=entries)
+    if current_user.is_authenticated:
+        entries = current_user.get_index_entries()
+        entry_count = current_user.get_entry_count()
+        return render_template('index.html',
+                               entries=entries,
+                               entry_count=entry_count)
+    else:
+        return render_template('index.html')
 
 
 if __name__ == '__main__':
     models.initialize()
     try:
         models.User.create_user(
-            username='Orion',
-            email='orion@orion.com',
+            username='test_user',
+            email='test@test.com',
             password='password'
         )
     except ValueError:

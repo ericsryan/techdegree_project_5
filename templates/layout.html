@@ -22,9 +22,11 @@
             <div class="container">
                 <div class="site-header">
                     <a class="logo" href="{{ url_for('index') }}"><i class="material-icons">library_books</i></a>
-                    <a class="button icon-right" href="{{ url_for('enter_log') }}"><span>New Entry</span> <i class="material-icons">add</i></a>
+
                     {% if current_user.is_authenticated %}
+                        <a class="button icon-right" href="{{ url_for('enter_log') }}"><span>New Entry</span> <i class="material-icons">add</i></a>
                         <a href="{{ url_for('logout') }}" class="button icon-right" title="Log Out">Log Out</a>
+                        <a href="{{ url_for('entries') }}" class="button icon-right" title="View All Entries">View All Entries</a>
                     {% else %}
                         <a href="{{ url_for('login') }}" class="button icon-right" title="Login">Login</a>
                         <a href="{{ url_for('register') }}" class="button icon-right" title="Register">Register</a>
@@ -38,9 +40,6 @@
             </div>
         </section>
         <footer>
-            <div>
-                <a href="{{ url_for('entries') }}" class=""><p>View all entries</p></a>
-            </div>
             <div>
                 &copy; MyJournal
             </div>
