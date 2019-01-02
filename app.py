@@ -44,12 +44,14 @@ def register():
     """Register a new user."""
     form = forms.RegisterForm()
     if form.validate_on_submit():
-        flash("You registered.", "success")
+        flash("You registered and are now logged in as "
+              "{}".format(form.username.data), "success")
         models.User.create_user(
             username=form.username.data,
             email=form.email.data,
             password=form.password.data
         )
+        login_user(models.User.get(models.User.username == form.username.data))
         return redirect(url_for('index'))
     return render_template('register.html', form=form)
 
@@ -75,13 +77,14 @@ def login():
 
 @app.route('/entry', methods=('GET', 'POST'))
 @login_required
-def enter_log():
+def add():
     """Create a new journal entry."""
-    form = forms.Entry()
+    form = forms.EntryForm()
     if form.validate_on_submit():
         flash("Your entry has been saved.", "success")
         models.Entry.create(
             user=g.user._get_current_object(),
+            slug=models.generate_slug(form.title.data),
             title=form.title.data,
             timestamp=form.timestamp.data,
             time_spent=form.time_spent.data,
@@ -92,23 +95,46 @@ def enter_log():
     return render_template('entry.html', form=form)
 
 
+@app.route('/entries/edit/<slug>', methods=('GET', 'POST'))
+@login_required
+def edit(slug):
+    """Edit an existing journal entry."""
+    entry = models.Entry.get(models.Entry.slug == slug)
+    form = forms.EntryForm(obj=entry)
+    if form.validate_on_submit():
+        flash("Your entry has been saved.", "success")
+        models.Entry.update(
+            slug=models.generate_slug(form.title.data),
+            title=form.title.data,
+            timestamp=form.timestamp.data,
+            time_spent=form.time_spent.data,
+            learned=form.learned.data,
+            resources=form.resources.data
+        ).where(models.Entry.slug == slug).execute()
+        return redirect(url_for('index'))
+    return render_template('edit.html', form=form)
+
+
 @app.route('/entries', methods=('GET', 'POST'))
 def entries():
     entries = current_user.get_entries()
-    return render_template('entries.html', entries=entries)
+    entry_count = current_user.get_entry_count()
+    return render_template('entries.html',
+                           entries=entries,
+                           entry_count=entry_count)
 
 
-@app.route('/details/<int:entry_id>')
+@app.route('/entries/<slug>')
 @login_required
-def details(entry_id):
-    entry = models.Entry.get(models.Entry.id == entry_id)
+def details(slug):
+    entry = models.Entry.get(models.Entry.slug == slug)
     return render_template('detail.html', entry=entry)
 
 
-@app.route('/delete/<int:entry_id>')
+@app.route('/delete/<slug>')
 @login_required
-def delete(entry_id):
-    entry = models.Entry.get(models.Entry.id == entry_id)
+def delete(slug):
+    entry = models.Entry.get(models.Entry.slug == slug)
     entry.delete_instance()
     flash("The entry has been deleted")
     return redirect(url_for('index'))

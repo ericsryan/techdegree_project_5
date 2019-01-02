@@ -3,8 +3,20 @@ import datetime
 from flask_bcrypt import generate_password_hash
 from flask_login import UserMixin
 from peewee import *
+from slugify import UniqueSlugify
 
 DATABASE = SqliteDatabase('journal.db')
+
+
+def generate_slug(title):
+    """Generate slug from entry title."""
+    slug = UniqueSlugify(to_lower=True)
+    while True:
+        new_slug = slug(title)
+        if Entry.get_or_none(Entry.slug == new_slug):
+            continue
+        else:
+            return new_slug
 
 
 class User(UserMixin, Model):
@@ -20,14 +32,17 @@ class User(UserMixin, Model):
 
 
     def get_entries(self):
+        """Get entries created by the logged in user from the database."""
         return (Entry.select().where(Entry.user == self).
                 order_by(Entry.timestamp.desc()))
 
     def get_index_entries(self):
+        """Get the most recent entries to display on the home page."""
         return (Entry.select().where(Entry.user == self).
                 limit(4).order_by(Entry.timestamp.desc()))
 
     def get_entry_count(self):
+        """Return the number of entries by the logged in user."""
         return Entry.select().where(Entry.user == self).count()
 
 
@@ -48,6 +63,7 @@ class User(UserMixin, Model):
 
 class Entry(Model):
     user = ForeignKeyField(User, backref='entries')
+    slug = CharField(unique=True)
     title = TextField()
     timestamp = DateTimeField(default=datetime.datetime.now)
     time_spent = CharField()
@@ -59,7 +75,27 @@ class Entry(Model):
         order_by = ('-timestamp',)
 
 
+class EntryTag(Model):
+    entry = ForeignKeyField(Entry, backref='entries')
+    tag = ForeignKeyField(Entry, backref='tags')
+
+    class Meta:
+        database = DATABASE
+        indexes = (
+            (('entry', 'tag'), True),
+        )
+
+    def get_entries_by_tag(self):
+        return (Entry
+                .select()
+                .join(EntryTag, on=EntryTag.tag)
+                .where(
+                    (EntryTag.entry == self)
+                ))
+
+
+
 def initialize():
     DATABASE.connect()
-    DATABASE.create_tables([User, Entry], safe=True)
+    DATABASE.create_tables([User, Entry, EntryTag], safe=True)
     DATABASE.close()

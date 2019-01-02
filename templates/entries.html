@@ -4,12 +4,15 @@
 <div class="container">
     <div class="entry-list">
         <article>
-{% for entry in entries %}
-            <h2>
-                <a href="{{ url_for('details', entry_id=entry.id) }}">{{ entry.title }}</a>
-            </h2>
-                <p>{{ entry.timestamp.strftime('%m/%d/%Y') }}</p>
-{% endfor %}
+            {% if entry_count == 0 %}
+                <h3>You don't have any journal entries. Go ahead and <a href="{{ url_for('add') }}">create one</a> now!</h3>
+            {% endif %}
+            {% for entry in entries %}
+                <h2>
+                    <a href="{{ url_for('details', slug=entry.slug) }}">{{ entry.title }}</a>
+                </h2>
+                    <p>{{ entry.timestamp.strftime('%m/%d/%Y') }}</p>
+            {% endfor %}
         </article>
     </div>
 </div>
