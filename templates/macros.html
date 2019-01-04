@@ -9,18 +9,6 @@
     </div>
 {% endmacro %}
 
-{% macro render_attached_tags(entry, entry_tags) %}
-<div class="">
-    {% if entry_tags.errors %}
-        {% for error in entry_tags.errors %}
-            <div class="">{{ error }}</div>
-        {% endfor %}
-    {% endif %}
-    {% if entry_tags %}
-    <p>{% for tag in entry_tags %}{% if tag.entry.id == entry.id %}• <a href="{{ url_for('entries', tag=tag.tag.tag) }}">{{ tag.tag.tag }}</a>{% endif %} {% endfor %}</p>
-    {% endif %}
-</div>
-{% endmacro %}
 
 {% macro render_entries(entries, entry_tags) %}
 {% for entry in entries %}
@@ -28,6 +16,29 @@
         <a href="{{ url_for('details', slug=entry.slug) }}">{{ entry.title }}</a>
     </h2>
         <p>{{ entry.timestamp.strftime('%m/%d/%Y') }}</p>
-    {{ render_attached_tags(entry, entry_tags) }}<br><br>
 {% endfor %}
+{% endmacro %}
+
+
+{% macro render_attach_tags(tags) %}
+{% if tags.errors %}
+    {% for error in tags.errors %}
+        <div class="">{{ error }}</div>
+    {% endfor %}
+{% endif %}
+{% if tags %}
+<p>{% for tag in tags %}• <a>{{ tag.tag }}</a> {% endfor %}</p>
+{% endif %}
+{% endmacro %}
+
+
+{% macro render_delete_tags(tags) %}
+{% if tags.errors %}
+    {% for error in tags.errors %}
+        <div class="">{{ error }}</div>
+    {% endfor %}
+{% endif %}
+{% if tags %}
+<p>{% for tag in tags %}• <a href="{{ url_for('delete_tag', tag=tag.tag) }}">{{ tag.tag }}</a> {% endfor %}</p>
+{% endif %}
 {% endmacro %}

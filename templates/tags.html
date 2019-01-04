@@ -1,5 +1,7 @@
 {% extends 'layout.html' %}
 {% from 'macros.html' import render_field %}
+{% from 'macros.html' import render_attach_tags %}
+{% from 'macros.html' import render_delete_tags %}
 
 {% block content %}
 <form method="POST" action="" class="container">
@@ -8,5 +10,12 @@
         {{ render_field(field) }}
     {% endfor %}
     <button type="submit" id="submit" class="button">Create New Tag</button>
-</form>
+</form><br>
+<h3>Attach a Tag</h3>
+    {{ render_attach_tags(attach_tags) }}
+<h3>Remove a Tag</h3>
+
+<h3>Click to delete a tag (These tags are not currently in use)</h3>
+    {{ render_delete_tags(delete_tags) }}
+
 {% endblock %}

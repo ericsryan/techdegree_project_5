@@ -95,7 +95,7 @@ def add():
     return render_template('add.html', form=form)
 
 
-@app.route('/entries/edit/<slug>', methods=('GET', 'POST'))
+@app.route('/entry/edit/<slug>', methods=('GET', 'POST'))
 @login_required
 def edit(slug):
     """Edit an existing journal entry."""
@@ -112,61 +112,34 @@ def edit(slug):
             resources=form.resources.data
         ).where(models.Entry.slug == slug).execute()
         return redirect(url_for('index'))
-    return render_template('edit.html', form=form)
+    return render_template('edit.html', form=form, entry=entry)
 
 
-@app.route('/entries', methods=('GET', 'POST'))
-@app.route('/entries/<tag>', methods=('GET', 'POST'))
-def entries(tag=None):
-    if tag:
-        entries = models.get_entries_by_tag(tag)
-    else:
-        entries = current_user.get_entries()
-    entry_tags = models.EntryTag.select()
-    entry_count = current_user.get_entry_count()
-    return render_template('entries.html',
-                           entries=entries,
-                           entry_tags=entry_tags,
-                           entry_count=entry_count)
-
-
-@app.route('/details/<slug>')
+@app.route('/edit-tags', methods=('GET', 'POST'))
 @login_required
-def details(slug):
-    entry = models.Entry.get(models.Entry.slug == slug)
-    entry_tags = models.EntryTag.select()
-    tags = models.get_entry_tags(entry)
-    return render_template('detail.html',
-                           entry=entry,
-                           entry_tags=entry_tags,
-                           tags=tags)
-
-
-@app.route('/create-tag', methods=("GET", "POST"))
-@login_required
-def create_tag():
-    """Create a new tag for the current user."""
+def edit_tags():
+    """Create, attach, remove, or delete tags."""
     form = forms.TagForm()
+    user = g.user._get_current_object()
+    tags = models.Tag.select()
+    attach_tags = models.get_attach_tags(tags)
+    delete_tags = models.get_delete_tags(tags)
     if form.validate_on_submit():
         try:
-            models.Tag.get(user=g.user._get_current_object(),
+            models.Tag.get(user=user,
                            tag=form.tag.data)
             flash("That tag already exists")
-            return redirect(url_for('entries'))
         except Exception:
             models.Tag.create(user=g.user._get_current_object(),
                               tag=form.tag.data)
-            return redirect(url_for('entries'))
-    return render_template('new_tag.html', form=form)
+            return redirect(url_for('edit_tags'))
+    return render_template('tags.html',
+                           form=form,
+                           attach_tags=attach_tags,
+                           delete_tags=delete_tags)
 
 
-@app.route('/delete-tag', methods=("GET", "POST"))
-@login_required
-def delete_tag():
-    pass
-
-
-@app.route('/attach-tag/<entry_slug>/<tag>')
+@app.route('/attach-tag/<entry_slug>/<tag>', methods=('Get', 'POST'))
 @login_required
 def attach_tag(entry_slug, tag):
     try:
@@ -185,24 +158,37 @@ def attach_tag(entry_slug, tag):
     return redirect(url_for('index'))
 
 
-@app.route('/remove-tag/<entry_slug>/<tag>')
+@app.route('/delete-tag/<tag>', methods=("GET", "POST"))
 @login_required
-def remove_tag(entry_slug, tag):
-    try:
-        entry = models.Entry.get(models.Entry.slug**entry_slug)
-        tag = models.Tag.get(models.Tag.tag**tag)
-    except models.DoesNotExist:
-        pass
-    else:
-        try:
-            models.EntryTag.get(
-                entry=entry,
-                tag=tag
-            ).delete_instance()
-        except models.IntegrityError:
-            pass
-    return redirect(url_for('index'))
+def delete_tag(tag):
+    """Delete tag from the database."""
+    user = g.user._get_current_object()
+    models.Tag.get(user=user, tag=tag).delete_instance()
+    return redirect(url_for('edit_tags'))
 
+
+
+
+
+@app.route('/entries', methods=('GET', 'POST'))
+@app.route('/entries/<tag>', methods=('GET', 'POST'))
+def entries(tag=None):
+    if tag:
+        entries = models.get_entries_by_tag(tag)
+    else:
+        entries = current_user.get_entries()
+    entry_count = current_user.get_entry_count()
+    return render_template('entries.html',
+                           entries=entries,
+                           entry_count=entry_count)
+
+
+@app.route('/details/<slug>')
+@login_required
+def details(slug):
+    entry = models.Entry.get(models.Entry.slug == slug)
+    return render_template('detail.html',
+                           entry=entry)
 
 
 @app.route('/delete/<slug>')
@@ -227,11 +213,9 @@ def index():
     """Display the main page."""
     if current_user.is_authenticated:
         entries = current_user.get_index_entries()
-        entry_tags = models.EntryTag.select()
         entry_count = current_user.get_entry_count()
         return render_template('index.html',
                                entries=entries,
-                               entry_tags=entry_tags,
                                entry_count=entry_count)
     else:
         return render_template('index.html')

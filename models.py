@@ -19,15 +19,42 @@ def generate_slug(title):
             return new_slug
 
 
-def get_tags(user):
-    """Get all tags that have been created by the current user."""
-    return Tag.select().where(Tag.user == user.user).order_by(Tag.tag)
-
-
 def get_entry_tags(entry):
     """Get all tags attached to the current entry."""
     return EntryTag.select().where(EntryTag.entry_id == entry.id)
 
+
+def get_add_tags(tags):
+    """Get tags that may be added to the current entry."""
+    add_tags = []
+    for tag in tags:
+        if EntryTag.get_or_none(EntryTag.tag_id == tag.id):
+            add_tags.append(tag)
+        else:
+            continue
+    return add_tags
+
+
+def get_attach_tags(tags):
+    """Get tags that may be added to the current entry."""
+    attach_tags = []
+    for tag in tags:
+        if EntryTag.get_or_none(EntryTag.tag_id == tag.id):
+            continue
+        else:
+            attach_tags.append(tag)
+    return attach_tags
+
+
+def get_delete_tags(tags):
+    """Get tags that are not attached to any entry."""
+    delete_tags = []
+    for tag in tags:
+        if EntryTag.get_or_none(EntryTag.tag_id == tag.id):
+            continue
+        else:
+            delete_tags.append(tag)
+    return delete_tags
 
 def get_entries_by_tag(url_tag):
     """Get all entries with the selected tag."""
@@ -61,7 +88,7 @@ class User(UserMixin, Model):
     def get_index_entries(self):
         """Get the most recent entries to display on the home page."""
         return (Entry.select().where(Entry.user == self).
-                limit(4).order_by(Entry.timestamp.desc()))
+                limit(3).order_by(Entry.timestamp.desc()))
 
     def get_entry_count(self):
         """Return the number of entries by the logged in user."""
