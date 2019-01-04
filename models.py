@@ -9,7 +9,7 @@ DATABASE = SqliteDatabase('journal.db')
 
 
 def generate_slug(title):
-    """Generate slug from entry title."""
+    """Generate unique slug from entry title."""
     slug = UniqueSlugify(to_lower=True)
     while True:
         new_slug = slug(title)
@@ -17,6 +17,21 @@ def generate_slug(title):
             continue
         else:
             return new_slug
+
+
+def get_tags(user):
+    """Get all tags that have been created by the current user."""
+    return Tag.select().where(Tag.user == user.user).order_by(Tag.tag)
+
+
+def get_entry_tags(entry):
+    """Get all tags attached to the current entry."""
+    return EntryTag.select().where(EntryTag.entry_id == entry.id)
+
+
+def get_entries_by_tag(tag):
+    """Get all entries with the selected tag."""
+    return EntryTag.select().where(EntryTag.tag_id == tag.id)
 
 
 class User(UserMixin, Model):
@@ -44,7 +59,6 @@ class User(UserMixin, Model):
     def get_entry_count(self):
         """Return the number of entries by the logged in user."""
         return Entry.select().where(Entry.user == self).count()
-
 
     @classmethod
     def create_user(cls, username, email, password, admin=False):
@@ -75,9 +89,17 @@ class Entry(Model):
         order_by = ('-timestamp',)
 
 
+class Tag(Model):
+    user = ForeignKeyField(User)
+    tag = CharField()
+
+    class Meta:
+        database = DATABASE
+
+
 class EntryTag(Model):
     entry = ForeignKeyField(Entry, backref='entries')
-    tag = ForeignKeyField(Entry, backref='tags')
+    tag = ForeignKeyField(Tag, backref='tags')
 
     class Meta:
         database = DATABASE
@@ -85,17 +107,8 @@ class EntryTag(Model):
             (('entry', 'tag'), True),
         )
 
-    def get_entries_by_tag(self):
-        return (Entry
-                .select()
-                .join(EntryTag, on=EntryTag.tag)
-                .where(
-                    (EntryTag.entry == self)
-                ))
-
-
 
 def initialize():
     DATABASE.connect()
-    DATABASE.create_tables([User, Entry, EntryTag], safe=True)
+    DATABASE.create_tables([User, Entry, EntryTag, Tag], safe=True)
     DATABASE.close()

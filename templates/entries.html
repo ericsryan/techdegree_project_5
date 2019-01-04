@@ -1,4 +1,5 @@
 {% extends 'layout.html' %}
+{% from 'macros.html' import render_entries %}
 
 {% block content %}
 <div class="container">
@@ -7,12 +8,7 @@
             {% if entry_count == 0 %}
                 <h3>You don't have any journal entries. Go ahead and <a href="{{ url_for('add') }}">create one</a> now!</h3>
             {% endif %}
-            {% for entry in entries %}
-                <h2>
-                    <a href="{{ url_for('details', slug=entry.slug) }}">{{ entry.title }}</a>
-                </h2>
-                    <p>{{ entry.timestamp.strftime('%m/%d/%Y') }}</p>
-            {% endfor %}
+            {{ render_entries(entries, entry_tags) }}
         </article>
     </div>
 </div>

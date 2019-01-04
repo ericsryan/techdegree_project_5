@@ -8,3 +8,26 @@
         {{ field(placeholder=field.label.text) }}
     </div>
 {% endmacro %}
+
+{% macro render_attached_tags(entry, entry_tags) %}
+<div class="">
+    {% if entry_tags.errors %}
+        {% for error in entry_tags.errors %}
+            <div class="">{{ error }}</div>
+        {% endfor %}
+    {% endif %}
+    {% if entry_tags %}
+    <p>{% for tag in entry_tags %}{% if tag.entry.id == entry.id %}• {{ tag.tag.tag }}{% endif %} {% endfor %}</p>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro render_entries(entries, entry_tags) %}
+{% for entry in entries %}
+    <h2>
+        <a href="{{ url_for('details', slug=entry.slug) }}">{{ entry.title }}</a>
+    </h2>
+        <p>{{ entry.timestamp.strftime('%m/%d/%Y') }}</p>
+    <a href="{{ url_for('entries', )}}">{{ render_attached_tags(entry, entry_tags) }}</a><br><br>
+{% endfor %}
+{% endmacro %}

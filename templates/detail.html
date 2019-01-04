@@ -1,4 +1,6 @@
 {% extends 'layout.html' %}
+{% from 'macros.html' import render_attached_tags %}
+
 
 {% block content %}
 <section>
@@ -21,12 +23,20 @@
                     <p>{{ entry.resources }}</p>
                 </div>
                 {% endif %}
+                <div class="entry">
+                    {% if tags %}
+                        <h3>Tagged with: </h3>
+                        {{ render_attached_tags(entry, entry_tags) }}
+                    {% endif %}
+                </div>
             </article>
         </div>
     </div>
     <div class="edit">
-        <p><a href="{{ url_for('edit', slug=entry.slug) }}">Edit Entry</a></p>
-        <p><a href="{{ url_for('delete', slug=entry.slug) }}">Delete Entry</a></p>
+        <p>
+           <a href="{{ url_for('edit', slug=entry.slug) }}">Edit Entry</a>
+           <a href="{{ url_for('delete', slug=entry.slug) }}">Delete Entry</a></p>
+        <p></p>
     </div>
 </section>
 {% endblock %}

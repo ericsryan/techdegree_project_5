@@ -12,6 +12,7 @@ peewee = "*"
 flask-wtf = "*"
 flask-bcrypt = "*"
 awesome-slugify = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.7"

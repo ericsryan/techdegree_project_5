@@ -1,4 +1,5 @@
 {% extends 'layout.html'%}
+{% from 'macros.html' import render_entries %}
 
 {% block content %}
     {% if current_user.is_authenticated %}
@@ -10,12 +11,7 @@
         <div class="container">
             <div class="entry-list">
                 <article>
-                {% for entry in entries %}
-                    <h2>
-                        <a href="{{ url_for('details', slug=entry.slug) }}">{{ entry.title }}</a>
-                    </h2>
-                        <p>{{ entry.timestamp.strftime('%m/%d/%Y') }}</p>
-                {% endfor %}
+                {{ render_entries(entries, entry_tags) }}
                 </article>
                 <div>
                 {% if entry_count > 4 %}
