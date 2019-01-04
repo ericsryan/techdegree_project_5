@@ -116,8 +116,12 @@ def edit(slug):
 
 
 @app.route('/entries', methods=('GET', 'POST'))
-def entries():
-    entries = current_user.get_entries()
+@app.route('/entries/<tag>', methods=('GET', 'POST'))
+def entries(tag=None):
+    if tag:
+        entries = models.get_entries_by_tag(tag)
+    else:
+        entries = current_user.get_entries()
     entry_tags = models.EntryTag.select()
     entry_count = current_user.get_entry_count()
     return render_template('entries.html',
@@ -126,7 +130,7 @@ def entries():
                            entry_count=entry_count)
 
 
-@app.route('/entries/<slug>')
+@app.route('/details/<slug>')
 @login_required
 def details(slug):
     entry = models.Entry.get(models.Entry.slug == slug)

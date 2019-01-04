@@ -17,7 +17,7 @@
         {% endfor %}
     {% endif %}
     {% if entry_tags %}
-    <p>{% for tag in entry_tags %}{% if tag.entry.id == entry.id %}• {{ tag.tag.tag }}{% endif %} {% endfor %}</p>
+    <p>{% for tag in entry_tags %}{% if tag.entry.id == entry.id %}• <a href="{{ url_for('entries', tag=tag.tag.tag) }}">{{ tag.tag.tag }}</a>{% endif %} {% endfor %}</p>
     {% endif %}
 </div>
 {% endmacro %}
@@ -28,6 +28,6 @@
         <a href="{{ url_for('details', slug=entry.slug) }}">{{ entry.title }}</a>
     </h2>
         <p>{{ entry.timestamp.strftime('%m/%d/%Y') }}</p>
-    <a href="{{ url_for('entries', )}}">{{ render_attached_tags(entry, entry_tags) }}</a><br><br>
+    {{ render_attached_tags(entry, entry_tags) }}<br><br>
 {% endfor %}
 {% endmacro %}

@@ -29,9 +29,16 @@ def get_entry_tags(entry):
     return EntryTag.select().where(EntryTag.entry_id == entry.id)
 
 
-def get_entries_by_tag(tag):
+def get_entries_by_tag(url_tag):
     """Get all entries with the selected tag."""
-    return EntryTag.select().where(EntryTag.tag_id == tag.id)
+    tag = Tag.get(Tag.tag == url_tag)
+    return (
+        Entry.select().join(
+            EntryTag, on=EntryTag.entry
+        ).where(
+            EntryTag.tag == tag
+        )
+    )
 
 
 class User(UserMixin, Model):
