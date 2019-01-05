@@ -16,12 +16,12 @@
         <a href="{{ url_for('details', slug=entry.slug) }}">{{ entry.title }}</a>
     </h2>
         <p>{{ entry.timestamp.strftime('%m/%d/%Y') }}</p>
-        <p>{{ render_attached_tags(entry, entry_tags) }}</p>
+        <p>{{ render_entry_tags(entry, entry_tags) }}</p>
 {% endfor %}
 {% endmacro %}
 
 
-{% macro render_attached_tags(entry, entry_tags) %}
+{% macro render_entry_tags(entry, entry_tags) %}
 <div class="">
     {% if entry_tags.errors %}
         {% for error in entry_tags.errors %}
