@@ -58,21 +58,20 @@ def get_delete_tags(slug, tags):
             delete_tags.append(tag)
     return delete_tags
 
-def get_entries_by_tag(user, url_tag):
+def get_entries_by_tag(url_tag):
     """Get all entries with the selected tag."""
     tag = Tag.get(Tag.tag == url_tag)
     return (
         Entry.select().join(
             EntryTag, on=EntryTag.entry
         ).where(
-            (EntryTag.tag == tag) & (Entry.id == user.id)
+            (EntryTag.tag == tag)
         )
     )
 
 
 class User(UserMixin, Model):
     username = CharField(unique=True)
-    email = CharField(unique=True)
     password = CharField(max_length=100)
     joined_at = DateTimeField(default=datetime.datetime.now)
     is_admin = BooleanField(default=False)
@@ -84,25 +83,22 @@ class User(UserMixin, Model):
 
     def get_entries(self):
         """Get entries created by the logged in user from the database."""
-        return (Entry.select().where(Entry.user == self).
-                order_by(Entry.timestamp.desc()))
+        return Entry.select().order_by(Entry.timestamp.desc())
 
     def get_index_entries(self):
         """Get the most recent entries to display on the home page."""
-        return (Entry.select().where(Entry.user == self).
-                limit(3).order_by(Entry.timestamp.desc()))
+        return Entry.select().limit(3).order_by(Entry.timestamp.desc())
 
     def get_entry_count(self):
         """Return the number of entries by the logged in user."""
-        return Entry.select().where(Entry.user == self).count()
+        return Entry.select().count()
 
     @classmethod
-    def create_user(cls, username, email, password, admin=False):
+    def create_user(cls, username, password, admin=False):
         try:
             with DATABASE.transaction():
                 cls.create(
                     username=username,
-                    email=email,
                     password=generate_password_hash(password),
                     is_admin=admin
                 )
@@ -112,7 +108,6 @@ class User(UserMixin, Model):
 
 
 class Entry(Model):
-    user = ForeignKeyField(User, backref='entries')
     slug = CharField(unique=True)
     title = TextField()
     timestamp = DateTimeField(default=datetime.datetime.now)
@@ -126,12 +121,10 @@ class Entry(Model):
 
 
 class Tag(Model):
-    user = ForeignKeyField(User)
-    tag = CharField()
+    tag = CharField(unique=True)
 
     class Meta:
         database = DATABASE
-
 
 class EntryTag(Model):
     entry = ForeignKeyField(Entry, backref='entries')
@@ -139,6 +132,9 @@ class EntryTag(Model):
 
     class Meta:
         database = DATABASE
+        indexes = (
+            (('entry', 'tag'), True),
+        )
 
 
 def initialize():

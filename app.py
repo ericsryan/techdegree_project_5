@@ -39,23 +39,6 @@ def after_request(response):
     return response
 
 
-@app.route('/register', methods=('GET', 'POST'))
-def register():
-    """Register a new user."""
-    form = forms.RegisterForm()
-    if form.validate_on_submit():
-        flash("You registered and are now logged in as "
-              "{}".format(form.username.data), "success")
-        models.User.create_user(
-            username=form.username.data,
-            email=form.email.data,
-            password=form.password.data
-        )
-        login_user(models.User.get(models.User.username == form.username.data))
-        return redirect(url_for('index'))
-    return render_template('register.html', form=form)
-
-
 @app.route('/login', methods=('GET', 'POST'))
 def login():
     """Login existing user."""
@@ -83,7 +66,6 @@ def add():
     if form.validate_on_submit():
         flash("Your entry has been saved.", "success")
         models.Entry.create(
-            user=g.user._get_current_object(),
             slug=models.generate_slug(form.title.data),
             title=form.title.data,
             timestamp=form.timestamp.data,
@@ -120,16 +102,14 @@ def edit(slug):
 def edit_tags(slug):
     """Create, attach, remove, or delete tags."""
     form = forms.TagForm()# Form for creating a tag
-    user = g.user._get_current_object()
-    tags = models.Tag.select().where(models.Tag.user_id == user.id)
+    tags = models.Tag.select()
     attach_tags = models.get_attach_tags(slug, tags)
     remove_tags = models.get_remove_tags(slug, tags)
     delete_tags = models.get_delete_tags(slug, tags)
     if form.validate_on_submit():# If you decide to create a tag
         try:
-            models.Tag.create(user=user,
-                           tag=form.tag.data)
-            new_tag = models.Tag.get((user == user) & (models.Tag.tag == form.tag.data))
+            models.Tag.create(tag=form.tag.data)
+            new_tag = models.Tag.get(models.Tag.tag == form.tag.data)
             return redirect(url_for('attach_tag', slug=slug, tag=form.tag.data))
         except models.IntegrityError:
             flash("That tag already exists")
@@ -145,10 +125,9 @@ def edit_tags(slug):
 @app.route('/attach-tag/<slug>/<tag>', methods=('Get', 'POST'))
 @login_required
 def attach_tag(slug, tag):
-    user = g.user._get_current_object()
     try:
         entry = models.Entry.get(models.Entry.slug**slug)
-        tag = models.Tag.get((user == user) & (models.Tag.tag == tag))
+        tag = models.Tag.get(models.Tag.tag == tag)
     except models.DoesNotExist:
         pass
     else:
@@ -185,17 +164,15 @@ def remove_tag(slug, tag):
 @login_required
 def delete_tag(slug, tag):
     """Delete tag from the database."""
-    user = g.user._get_current_object()
-    models.Tag.get(user=user, tag=tag).delete_instance()
+    models.Tag.get(tag=tag).delete_instance()
     return redirect(url_for('edit_tags', slug=slug))
 
 
 @app.route('/entries', methods=('GET', 'POST'))
 @app.route('/entries/<tag>', methods=('GET', 'POST'))
 def entries(tag=None):
-    user = g.user._get_current_object()
     if tag:
-        entries = models.get_entries_by_tag(user, tag)
+        entries = models.get_entries_by_tag(tag)
     else:
         entries = current_user.get_entries()
     entry_count = current_user.get_entry_count()
@@ -255,7 +232,6 @@ if __name__ == '__main__':
     try:
         models.User.create_user(
             username='test_user',
-            email='test@test.com',
             password='password'
         )
     except ValueError:
