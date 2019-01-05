@@ -24,29 +24,31 @@ def get_entry_tags(entry):
     return EntryTag.select().where(EntryTag.entry_id == entry.id)
 
 
-def get_add_tags(tags):
-    """Get tags that may be added to the current entry."""
-    add_tags = []
-    for tag in tags:
-        if EntryTag.get_or_none(EntryTag.tag_id == tag.id):
-            add_tags.append(tag)
-        else:
-            continue
-    return add_tags
-
-
-def get_attach_tags(tags):
+def get_attach_tags(slug, tags):
     """Get tags that may be added to the current entry."""
     attach_tags = []
+    entry = Entry.get(Entry.slug == slug)
     for tag in tags:
-        if EntryTag.get_or_none(EntryTag.tag_id == tag.id):
+        if EntryTag.get_or_none((EntryTag.tag_id == tag.id) & (EntryTag.entry_id == entry.id)):
             continue
         else:
             attach_tags.append(tag)
     return attach_tags
 
 
-def get_delete_tags(tags):
+def get_remove_tags(slug, tags):
+    """Get tags that may be removed to the current entry."""
+    remove_tags = []
+    entry = Entry.get(Entry.slug == slug)
+    for tag in tags:
+        if EntryTag.get_or_none((EntryTag.tag_id == tag.id) & (EntryTag.entry_id == entry.id)):
+            remove_tags.append(tag)
+        else:
+            continue
+    return remove_tags
+
+
+def get_delete_tags(slug, tags):
     """Get tags that are not attached to any entry."""
     delete_tags = []
     for tag in tags:
@@ -56,14 +58,14 @@ def get_delete_tags(tags):
             delete_tags.append(tag)
     return delete_tags
 
-def get_entries_by_tag(url_tag):
+def get_entries_by_tag(user, url_tag):
     """Get all entries with the selected tag."""
     tag = Tag.get(Tag.tag == url_tag)
     return (
         Entry.select().join(
             EntryTag, on=EntryTag.entry
         ).where(
-            EntryTag.tag == tag
+            (EntryTag.tag == tag) & (Entry.id == user.id)
         )
     )
 
@@ -137,9 +139,6 @@ class EntryTag(Model):
 
     class Meta:
         database = DATABASE
-        indexes = (
-            (('entry', 'tag'), True),
-        )
 
 
 def initialize():

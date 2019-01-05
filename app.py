@@ -115,36 +115,40 @@ def edit(slug):
     return render_template('edit.html', form=form, entry=entry)
 
 
-@app.route('/edit-tags', methods=('GET', 'POST'))
+@app.route('/edit-tags/<slug>', methods=('GET', 'POST'))
 @login_required
-def edit_tags():
+def edit_tags(slug):
     """Create, attach, remove, or delete tags."""
-    form = forms.TagForm()
+    form = forms.TagForm()# Form for creating a tag
     user = g.user._get_current_object()
-    tags = models.Tag.select()
-    attach_tags = models.get_attach_tags(tags)
-    delete_tags = models.get_delete_tags(tags)
-    if form.validate_on_submit():
+    tags = models.Tag.select().where(models.Tag.user_id == user.id)
+    attach_tags = models.get_attach_tags(slug, tags)
+    remove_tags = models.get_remove_tags(slug, tags)
+    delete_tags = models.get_delete_tags(slug, tags)
+    if form.validate_on_submit():# If you decide to create a tag
         try:
-            models.Tag.get(user=user,
+            models.Tag.create(user=user,
                            tag=form.tag.data)
+            new_tag = models.Tag.get((user == user) & (models.Tag.tag == form.tag.data))
+            return redirect(url_for('attach_tag', slug=slug, tag=form.tag.data))
+        except models.IntegrityError:
             flash("That tag already exists")
-        except Exception:
-            models.Tag.create(user=g.user._get_current_object(),
-                              tag=form.tag.data)
-            return redirect(url_for('edit_tags'))
+            pass
     return render_template('tags.html',
                            form=form,
+                           slug=slug,
                            attach_tags=attach_tags,
+                           remove_tags=remove_tags,
                            delete_tags=delete_tags)
 
 
-@app.route('/attach-tag/<entry_slug>/<tag>', methods=('Get', 'POST'))
+@app.route('/attach-tag/<slug>/<tag>', methods=('Get', 'POST'))
 @login_required
-def attach_tag(entry_slug, tag):
+def attach_tag(slug, tag):
+    user = g.user._get_current_object()
     try:
-        entry = models.Entry.get(models.Entry.slug**entry_slug)
-        tag = models.Tag.get(models.Tag.tag**tag)
+        entry = models.Entry.get(models.Entry.slug**slug)
+        tag = models.Tag.get((user == user) & (models.Tag.tag == tag))
     except models.DoesNotExist:
         pass
     else:
@@ -155,31 +159,50 @@ def attach_tag(entry_slug, tag):
             )
         except models.IntegrityError:
             pass
-    return redirect(url_for('index'))
+    return redirect(url_for('edit_tags', slug=slug))
 
 
-@app.route('/delete-tag/<tag>', methods=("GET", "POST"))
+@app.route('/remove-tag/<slug>/<tag>')
 @login_required
-def delete_tag(tag):
+def remove_tag(slug, tag):
+    try:
+        entry = models.Entry.get(models.Entry.slug**slug)
+        tag = models.Tag.get(models.Tag.tag**tag)
+    except models.DoesNotExist:
+        pass
+    else:
+        try:
+            models.EntryTag.get(
+                entry=entry,
+                tag=tag
+            ).delete_instance()
+        except models.IntegrityError:
+            pass
+    return redirect(url_for('edit_tags', slug=slug))
+
+
+@app.route('/delete-tag/<slug>/<tag>', methods=("GET", "POST"))
+@login_required
+def delete_tag(slug, tag):
     """Delete tag from the database."""
     user = g.user._get_current_object()
     models.Tag.get(user=user, tag=tag).delete_instance()
-    return redirect(url_for('edit_tags'))
-
-
-
+    return redirect(url_for('edit_tags', slug=slug))
 
 
 @app.route('/entries', methods=('GET', 'POST'))
 @app.route('/entries/<tag>', methods=('GET', 'POST'))
 def entries(tag=None):
+    user = g.user._get_current_object()
     if tag:
-        entries = models.get_entries_by_tag(tag)
+        entries = models.get_entries_by_tag(user, tag)
     else:
         entries = current_user.get_entries()
     entry_count = current_user.get_entry_count()
+    entry_tags = models.EntryTag.select()
     return render_template('entries.html',
                            entries=entries,
+                           entry_tags=entry_tags,
                            entry_count=entry_count)
 
 
@@ -187,15 +210,19 @@ def entries(tag=None):
 @login_required
 def details(slug):
     entry = models.Entry.get(models.Entry.slug == slug)
+    entry_tags = models.EntryTag.select().where(models.EntryTag.entry_id == entry.id)
     return render_template('detail.html',
-                           entry=entry)
+                           entry=entry,
+                           entry_tags=entry_tags)
 
 
 @app.route('/delete/<slug>')
 @login_required
 def delete(slug):
     entry = models.Entry.get(models.Entry.slug == slug)
+    entry_tags = models.EntryTag.delete().where(models.EntryTag.entry_id == entry.id)
     entry.delete_instance()
+    entry_tags.execute()
     flash("The entry has been deleted")
     return redirect(url_for('index'))
 
@@ -214,8 +241,10 @@ def index():
     if current_user.is_authenticated:
         entries = current_user.get_index_entries()
         entry_count = current_user.get_entry_count()
+        entry_tags = models.EntryTag.select()
         return render_template('index.html',
                                entries=entries,
+                               entry_tags=entry_tags,
                                entry_count=entry_count)
     else:
         return render_template('index.html')

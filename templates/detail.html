@@ -23,16 +23,16 @@
                     <p>{{ entry.resources }}</p>
                 </div>
                 {% endif %}
-                
             </article>
-
+            {% if entry_tags %}
+                <h3>Tagged with: </h3>
+                {{ render_attached_tags(entry, entry_tags) }}
+            {% endif %}
+            <p><a href="{{ url_for('edit_tags', slug=entry.slug) }}">Add/Edit Tags</a></p>
         </div>
     </div>
     <div class="edit">
-        <p>
-
-           <a href="{{ url_for('edit', slug=entry.slug) }}">Edit Entry</a>
-           <a href="{{ url_for('delete', slug=entry.slug) }}">Delete Entry</a></p>
+        <p><a href="{{ url_for('edit', slug=entry.slug) }}">Edit Entry</a> <a href="{{ url_for('delete', slug=entry.slug) }}">Delete Entry</a></p>
         <p></p>
     </div>
 </section>
