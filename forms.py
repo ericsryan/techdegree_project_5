@@ -55,7 +55,7 @@ class LoginForm(FlaskForm):
 
 class EntryForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
-    timestamp = DateField('Date', format='%m-%d-%Y')
+    timestamp = DateField('Date (MM/DD/YYYY)', format='%m/%d/%Y')
     time_spent = StringField('Time Spent', validators=[DataRequired()])
     learned = TextAreaField('What I Learned:', validators=[DataRequired()])
     resources = TextAreaField('Resources to Remember: (Optional)')
