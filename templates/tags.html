@@ -12,12 +12,18 @@
     {% endfor %}
     <button type="submit" id="submit" class="button">Create New Tag</button>
 </form><br>
+{% if attach_tags %}
 <h3>Attach a Tag</h3>
     {{ render_attach_tags(slug, attach_tags) }}
+{% endif %}
+{% if remove_tags %}
 <h3>Click to Remove a Tag From the Entry</h3>
     {{ render_remove_tags(slug, remove_tags) }}
+{% endif %}
+{% if delete_tags %}
 <h3>Click to delete a tag (These tags are not currently in use)</h3>
     {{ render_delete_tags(slug, delete_tags) }}
+{% endif %}
 
 <p><a href="{{ url_for('details', slug=slug)}}" class="button">Return to Entry</a></p>
 

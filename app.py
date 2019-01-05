@@ -65,7 +65,7 @@ def add():
     form = forms.EntryForm()
     if form.validate_on_submit():
         flash("Your entry has been saved.", "success")
-        models.Entry.create(
+        new_entry = models.Entry.create(
             slug=models.generate_slug(form.title.data),
             title=form.title.data,
             timestamp=form.timestamp.data,
@@ -73,7 +73,7 @@ def add():
             learned=form.learned.data,
             resources=form.resources.data
         )
-        return redirect(url_for('index'))
+        return redirect(url_for('details', slug=new_entry.slug))
     return render_template('add.html', form=form)
 
 
