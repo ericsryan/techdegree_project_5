@@ -1,22 +1,56 @@
-# techdegree_project_5
-_________________________________________________________________
+# Personal Learning Journal with Flask
 
-Techdegree Project 5-Build a Personal Learning Journal with Flask
-_________________________________________________________________
+## Description
 
-Introduction
+This is a personal learning journal that allows users to create, edit, and delete journal entries. The journal entries are stored in a SQLite database. The journal entries are displayed in reverse chronological order. The user can also view all entries by tag.
 
-This program was developed to implement skills that were learned for using Flask to use Python on the internet. This program will allow users to create learning journal entries that hold title, date, things learned and learning resources. The user will then be able to tag their entries to make searching them easier.
+## Installation
 
+1. Clone the repository
+```bash
+git clone https://github.com/ericsryan/techdegree_project_5.git
+```
 
-Installation
+2. Create and activate a virtual environment (optional but recommended)
+```bash
+python3 -m venv env
+source env/bin/activate
+```
 
-Once the techdegree_project_5 folder has been downloaded the program can be run from app.py. Project dependancies can be found in requirements.txt.
+3. Install the requirements
+```bash
+pip install -r requirements.txt
+```
 
+4. Run the application
+```bash
+python3 app.py
+```
 
-Using the Program
+5. Navigate to http://127.0.0.1:5000 in your browser
 
-The user can log in with the username 'test_user' and the password 'password'. The user can add journal entries, delete or edit existing entries, add tags to their entries, and view all entries or search for entries with a specific tag. The journal entries can also be accessed by typing in a user-friendly URL that has an easily readable reference to the entry title.
+## Usage
 
+### Create a new entry
+1. Click the "New Entry" button
+2. Enter a title and content
+3. Click the "Save" button
 
+### Edit an entry
+1. Click the "Edit" button next to the entry you want to edit
+2. Edit the title and/or content
+3. Click the "Save" button
+
+### Delete an entry
+1. Click the "Delete" button next to the entry you want to delete
+2. Click the "Delete" button in the confirmation dialog
+
+### View entries by tag
+1. Click the tag you want to view
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
+
+## Credits
 Thanks Kenneth Love, Chris Howell, Zachary Jackson, Jordan Hoover, and the rest of Team Treehouse!
+
